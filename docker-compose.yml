@@ -1,0 +1,39 @@
+services:
+  db:
+    image: postgres:15
+    ports:
+      - "5434:5432"   # вместо 5432 используем 5433 на хосте
+    environment:
+      POSTGRES_USER: dva
+      POSTGRES_PASSWORD: dva
+      POSTGRES_DB: us
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: us_server
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    environment:  # Добавьте для отладки
+      - SPRING_PROFILES_ACTIVE=dev
+    healthcheck:  # Проверка здоровья БД
+      test: ["CMD", "pg_isready", "-h", "db", "-U", "dva"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  db_data:
+
+networks:
+  default:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.25.0.0/16

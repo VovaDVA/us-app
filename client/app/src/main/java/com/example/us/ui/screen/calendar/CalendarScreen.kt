@@ -1,6 +1,7 @@
 package com.example.us.ui.screen.calendar
 
 import android.annotation.SuppressLint
+import android.app.Application
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
@@ -64,6 +65,9 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.runtime.Stable
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.us.ui.component.AnimatedLoveBackground
 import com.kizitonwose.calendar.core.CalendarDay
 
@@ -79,7 +83,8 @@ val COLOR_WHITE = Color.White.copy(alpha = 0.85f)
 @Composable
 fun CalendarScreen() {
 
-    val store = rememberEventsStore()
+    val vm: CalendarViewModel = viewModel(factory = ViewModelProvider.AndroidViewModelFactory(LocalContext.current.applicationContext as Application))
+
     var selectedDate by rememberSaveable { mutableStateOf(LocalDate.now()) }
     var editingIndex by remember { mutableStateOf<Int?>(null) }
     var editingText by remember { mutableStateOf("") }
@@ -88,11 +93,8 @@ fun CalendarScreen() {
 
 
     // События для выбранного дня
-//    val eventsForDay by derivedStateOf {
-//        store.events[selectedDate].orEmpty()
-//    }
-    val eventsForDay = remember(selectedDate, store.events) {
-        store.events[selectedDate].orEmpty()
+    val eventsForDay = remember(selectedDate, vm.events) {
+        vm.events[selectedDate].orEmpty()
     }
 
     // Настройки календаря
@@ -110,43 +112,6 @@ fun CalendarScreen() {
 
     val listState = rememberLazyListState()
     var isCollapsed by remember { mutableStateOf(false) }
-
-//    val calendarHeight by animateDpAsState(
-//        if (isCollapsed) 102.dp else 340.dp,
-//        label = "calendarHeight"
-//    )
-
-//    val collapseThreshold = 12f      // чувствительность свайпа вверх
-//    val expandThreshold = 18f        // чувствительность свайпа вниз
-
-//    val nestedScrollConnection = remember {
-//        object : NestedScrollConnection {
-//
-//            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-//                if (source != NestedScrollSource.Drag) return Offset.Zero
-//
-//                // Свайп вверх → сжать
-//                if (available.y < -collapseThreshold) {
-//                    isCollapsed = true
-//                    return Offset.Zero
-//                }
-//
-//                // Свайп вниз → разжать, только если календарь уже сжат
-//                if (isCollapsed && available.y > expandThreshold) {
-//                    isCollapsed = false
-//                    return Offset.Zero
-//                }
-//
-//                return Offset.Zero
-//            }
-//        }
-//    }
-
-//    LaunchedEffect(isCollapsed, selectedDate) {
-//        if (isCollapsed) {
-//            calendarState.scrollToMonth(selectedDate.yearMonth)
-//        }
-//    }
 
 
     /* ------ BottomSheet (Добавление/редактирование) ------ */
@@ -188,12 +153,12 @@ fun CalendarScreen() {
                     state = calendarState,
                     monthHeader = { DaysOfWeekTitle(daysOfWeek) },
                     dayContent = { day ->
-                        val ui = rememberDayState(day, selectedDate, store)
+                        val hasEvents = vm.events[day.date]?.isNotEmpty() == true
                         DayCell(
                             day = day,
-                            isSelected = ui.isSelected,
-                            hasEvents = ui.hasEvents,
-                            onClick = { selectedDate = ui.date }
+                            isSelected = (day.date == selectedDate),
+                            hasEvents = hasEvents,
+                            onClick = { selectedDate = day.date }
                         )
                     },
                     modifier = Modifier.padding(15.dp)
@@ -256,9 +221,9 @@ fun CalendarScreen() {
                     isEditing = editingIndex != null,
                     onConfirm = { text, icon ->
                         if (editingIndex == null) {
-                            store.add(selectedDate, text, icon)
+                            vm.add(selectedDate, text, icon)
                         } else {
-                            store.update(selectedDate, editingIndex!!, text, icon)
+                            vm.update(selectedDate, editingIndex!!, text, icon)
                         }
                         editingIndex = null
                         editingIcon = null
@@ -289,7 +254,7 @@ fun CalendarScreen() {
                 confirmButton = {
                     Button(
                         onClick = {
-                            store.remove(selectedDate, idx)
+                            vm.remove(selectedDate, idx)
                             deleteIndex = null
                         },
                         colors = ButtonColors(

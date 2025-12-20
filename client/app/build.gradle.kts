@@ -57,6 +57,7 @@ dependencies {
     implementation(libs.androidx.ui.unit)
     implementation(libs.androidx.espresso.core)
     implementation(libs.ui)
+    implementation(libs.firebase.crashlytics.buildtools)
     coreLibraryDesugaring(libs.desugar.jdk.libs)
 
     implementation(libs.androidx.core.ktx)
@@ -90,4 +91,16 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.coil.compose)
     implementation(libs.gson)
+
+    // Ktor client
+    implementation(libs.ktor.client.core)
+    implementation(libs.ktor.client.cio) // движок для JVM
+    implementation(libs.ktor.client.content.negotiation)
+    implementation(libs.ktor.serialization.kotlinx.json)
+
+    // Kotlinx Serialization
+    implementation(libs.kotlinx.serialization.json.v160)
+
+    // Если используешь coroutines
+    implementation(libs.kotlinx.coroutines.core)
 }

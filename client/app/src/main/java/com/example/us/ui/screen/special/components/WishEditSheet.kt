@@ -42,7 +42,7 @@ fun WishEditSheet(
     onCancel: () -> Unit,
     onDelete: ((Long) -> Unit)? = null
 ) {
-    var text by remember { mutableStateOf(wish?.text ?: "") }
+    var text by remember { mutableStateOf(wish?.title ?: "") }
     var description by remember { mutableStateOf(wish?.description ?: "") }
     var link by remember { mutableStateOf(wish?.link ?: "") }
     var isFavorite by remember { mutableStateOf(wish?.isFavorite ?: false) }
@@ -143,7 +143,7 @@ fun WishEditSheet(
                     onSave(
                         Wish(
                             id = wish?.id ?: System.currentTimeMillis(),
-                            text = text,
+                            title = text,
                             description = description,
                             link = link.ifBlank { null },
                             categoryIcon = categoryIcon,

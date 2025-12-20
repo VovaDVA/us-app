@@ -64,6 +64,16 @@ fun WishesScreen(viewModel: WishesViewModel = viewModel()) {
             .invokeOnCompletion { sheetVisible = false }
     }
 
+    viewModel.errorMessage?.let { msg ->
+        Text(
+            text = msg,
+            color = Color.Red,
+            fontSize = 14.sp,
+            modifier = Modifier.padding(top = 200.dp)
+        )
+    }
+
+
     AnimatedLoveBackground(Modifier.fillMaxSize())
 
     Box(

@@ -9,9 +9,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -42,7 +39,7 @@ fun PartnerWishDialog(
             Spacer(Modifier.width(8.dp))
 
             Text(
-                wish.text, fontSize = 20.sp, fontWeight = FontWeight.Bold
+                wish.title, fontSize = 20.sp, fontWeight = FontWeight.Bold
             )
 
             Spacer(Modifier.width(8.dp))

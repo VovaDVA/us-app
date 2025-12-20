@@ -21,6 +21,7 @@ class EventsStore(private val context: Context) {
 
     var events by mutableStateOf<Map<LocalDate, MutableList<EventItem>>>(emptyMap())
         private set
+    var nextEvent: NextEventDto? = null
 
     init {
         load()

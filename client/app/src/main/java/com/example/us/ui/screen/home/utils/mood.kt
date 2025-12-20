@@ -1,8 +1,10 @@
 package com.example.us.ui.screen.home.utils
 
 import androidx.compose.ui.graphics.Color
+import kotlinx.serialization.Serializable
 
 // --------------------------- Эмоции ---------------------------
+@Serializable
 enum class MoodType {
     HAPPY,
     SAD,

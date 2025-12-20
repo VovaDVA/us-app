@@ -1,63 +1,144 @@
 package com.example.us.ui.screen.special
 
 import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import android.util.Log
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.lifecycle.AndroidViewModel
+import com.example.us.api.CacheClient
+import com.example.us.api.WishApi
+import com.example.us.ui.screen.special.classes.AddWishRequest
 import com.example.us.ui.screen.special.classes.Wish
-import com.example.us.ui.screen.special.classes.WishesStore
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class WishesViewModel(app: Application) : AndroidViewModel(app) {
-    private val store = WishesStore(app.applicationContext)
+    private val scope = CoroutineScope(Dispatchers.IO)
 
     var myWishes = mutableStateListOf<Wish>()
         private set
     var partnerWishes = mutableStateListOf<Wish>()
         private set
 
+    var errorMessage by mutableStateOf<String?>(null)
+        private set
+
+
+    // Хранит текущего пользователя
+    private var currentUserId: Long = 2
+    private var currentPartnerId: Long = 1
+
     init {
-        myWishes.addAll(store.wishes)
-        // тестовые желания партнёра
-        partnerWishes.addAll(listOf(
-            Wish(text = "Книга по фотографии", description = "Хочу купить новую книгу", isFavorite = true, link = "https://www.wildberries.ru/catalog/536636684/detail.aspx?size=739419353&targetUrl=MI%7C-1%7CWTL%7CIT%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C%7C", categoryIcon = "📚"),
-            Wish(text = "Новый плед", description = "", categoryIcon = "🛋️"),
-            Wish(text = "Романтический ужин", description = "В ресторане у озера", categoryIcon = "🍽️"),
-            Wish(text = "Курс рисования", description = "Онлайн курс", link = "https://example.com/art", categoryIcon = "🎨")
-        ))
+        // Подгружаем userId из кеша
+        scope.launch {
+            currentUserId = CacheClient.get<Long>("userId") ?: 2
+            currentPartnerId = CacheClient.get<Long>("partnerId") ?: 1
+
+            CacheClient.get<List<Wish>>("myWishes")?.let { cached ->
+                myWishes.addAll(cached)
+            }
+            CacheClient.get<List<Wish>>("partnerWishes")?.let { cached ->
+                partnerWishes.addAll(cached)
+            }
+
+            refreshMyWishes()
+            refreshPartnerWishes()
+            // Если кеш пустой, подгружаем с сервера
+//            if (myWishes.isEmpty()) refreshMyWishes()
+//            if (partnerWishes.isEmpty()) refreshPartnerWishes()
+        }
+    }
+
+    fun refreshMyWishes() {
+        scope.launch {
+            try {
+                val wishes = WishApi.myWishes(currentUserId)
+                myWishes.clear()
+                myWishes.addAll(wishes)
+                CacheClient.set("myWishes", wishes)
+            } catch (_: Exception) {}
+        }
+    }
+
+    fun refreshPartnerWishes() {
+        scope.launch {
+            try {
+                val wishes = WishApi.partnerWishes(currentPartnerId)
+                partnerWishes.clear()
+                partnerWishes.addAll(wishes)
+                CacheClient.set("partnerWishes", wishes)
+            } catch (_: Exception) {}
+        }
     }
 
     fun addMyWish(wish: Wish) {
-        myWishes.add(wish)
-        store.add(wish)
+        scope.launch {
+            try {
+                val created = WishApi.createWish(currentUserId, wish)
+                myWishes.add(created)
+                CacheClient.set("myWishes", myWishes.toList())
+            } catch (e: Exception) {
+                errorMessage = "Ошибка при создании желания: ${e.message}"
+            }
+        }
     }
+
 
     fun updateWish(wish: Wish) {
         val index = myWishes.indexOfFirst { it.id == wish.id }
         if (index != -1) {
-            myWishes[index] = wish
-            store.update(wish)
+            scope.launch {
+                try {
+                    WishApi.updateWish(currentUserId, wish.id, wish)
+                    myWishes[index] = wish
+                    CacheClient.set("myWishes", myWishes.toList())
+                } catch (_: Exception) {}
+            }
         }
     }
 
     fun removeWish(id: Long) {
-        myWishes.removeAll { it.id == id }
-        store.remove(id)
+        val index = myWishes.indexOfFirst { it.id == id }
+        if (index != -1) {
+            myWishes.removeAt(index)
+            scope.launch {
+                CacheClient.set("myWishes", myWishes.toList())
+                try {
+                    WishApi.deleteWish(id)
+                } catch (_: Exception) {}
+            }
+        }
     }
+
 
     fun toggleDone(id: Long) {
         val index = myWishes.indexOfFirst { it.id == id }
         if (index != -1) {
-            val w = myWishes[index]
-            myWishes[index] = w.copy(isDone = !w.isDone)
-            store.update(myWishes[index])
+            val w = myWishes[index].copy(isDone = !myWishes[index].isDone)
+            myWishes[index] = w
+            scope.launch {
+                CacheClient.set("myWishes", myWishes.toList())
+                try {
+                    WishApi.toggleDone(currentUserId, id)
+                } catch (_: Exception) {}
+            }
         }
     }
 
     fun toggleFavorite(id: Long) {
         val index = myWishes.indexOfFirst { it.id == id }
         if (index != -1) {
-            val w = myWishes[index]
-            myWishes[index] = w.copy(isFavorite = !w.isFavorite)
-            store.update(myWishes[index])
+            val w = myWishes[index].copy(isFavorite = !myWishes[index].isFavorite)
+            myWishes[index] = w
+            scope.launch {
+                CacheClient.set("myWishes", myWishes.toList())
+                try {
+                    WishApi.toggleFavorite(currentUserId, id)
+                } catch (_: Exception) {}
+            }
         }
     }
 }
