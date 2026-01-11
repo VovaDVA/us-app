@@ -25,9 +25,9 @@ fun GamesListScreen(onOpenHeartClicker: () -> Unit) {
         Spacer(Modifier.height(20.dp))
 
         GameCard(
-            title = "Сердечный Кликер",
-            description = "Нажимай на сердце, повышай ранг любви ❤️",
-            onClick = onOpenHeartClicker
+            title = "Сердечный Кликер ❤️",
+            description = "Нажимай на сердце, повышай ранг любви",
+            onClick = onOpenHeartClicker,
         )
     }
 }

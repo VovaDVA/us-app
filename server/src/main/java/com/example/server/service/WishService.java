@@ -3,7 +3,7 @@ package com.example.server.service;
 import com.example.server.model.CreateWishRequest;
 import com.example.server.model.UpdateWishRequest;
 import com.example.server.model.Wish;
-import com.example.server.model.WishDto;
+import com.example.server.dto.WishDto;
 import com.example.server.repository.WishRepository;
 import org.springframework.stereotype.Service;
 import java.util.List;

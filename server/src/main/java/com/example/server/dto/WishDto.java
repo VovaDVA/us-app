@@ -1,4 +1,6 @@
-package com.example.server.model;
+package com.example.server.dto;
+
+import com.example.server.model.Wish;
 
 public class WishDto {
 

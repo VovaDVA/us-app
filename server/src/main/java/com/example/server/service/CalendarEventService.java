@@ -1,7 +1,7 @@
 package com.example.server.service;
 
 import com.example.server.model.CalendarEvent;
-import com.example.server.model.EventItemDto;
+import com.example.server.dto.EventItemDto;
 import com.example.server.model.CreateUpdateEventRequest;
 import com.example.server.repository.CalendarEventRepository;
 import org.springframework.stereotype.Service;

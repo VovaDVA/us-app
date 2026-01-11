@@ -64,7 +64,13 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -79,7 +85,9 @@ val COLOR_WHITE = Color.White.copy(alpha = 0.85f)
     "CoroutineCreationDuringComposition", "UnrememberedMutableState",
     "FrequentlyChangingValue"
 )
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class,
+    ExperimentalMaterialApi::class
+)
 @Composable
 fun CalendarScreen() {
 
@@ -90,6 +98,15 @@ fun CalendarScreen() {
     var editingText by remember { mutableStateOf("") }
     var deleteIndex by remember { mutableStateOf<Int?>(null) }
     var editingIcon by remember { mutableStateOf<String?>(null) }
+
+    // Pull refresh ----------------------------------------/
+    val isRefreshing by vm.isRefreshing.collectAsState()
+
+    val pullRefreshState = rememberPullRefreshState(
+        refreshing = isRefreshing,
+        onRefresh = { vm.refresh() }
+    )
+    // -----------------------------------------------------/
 
 
     // События для выбранного дня
@@ -136,6 +153,7 @@ fun CalendarScreen() {
             .fillMaxSize()
             .padding(horizontal = 12.dp)
 //            .nestedScroll(nestedScrollConnection)
+            .pullRefresh(pullRefreshState)
     ) {
 
         Column {
@@ -206,6 +224,12 @@ fun CalendarScreen() {
         ) {
             Icon(Icons.Default.Add, contentDescription = "Add", tint = Color.White)
         }
+
+        PullRefreshIndicator(
+            refreshing = isRefreshing,
+            state = pullRefreshState,
+            modifier = Modifier.align(Alignment.TopCenter)
+        )
 
         /* Bottom Sheet ---------------------- */
 

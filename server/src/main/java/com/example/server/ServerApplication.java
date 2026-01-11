@@ -19,23 +19,23 @@ public class ServerApplication {
         SpringApplication.run(ServerApplication.class, args);
     }
 
-    @Bean
-    @Transactional
-    public CommandLineRunner init(UserRepository userRepository) {
-        return args -> {
-            if (userRepository.count() == 0) {
-                User user1 = new User();
-                user1.setName("Настюша");
-                userRepository.saveAndFlush(user1); // сразу пишем в базу
-
-                User user2 = new User();
-                user2.setName("Вова");
-                user2.setPartnerId(user1.getId());
-                userRepository.save(user2);
-
-                user1.setPartnerId(user2.getId());
-                userRepository.save(user1);
-            }
-        };
-    }
+//    @Bean
+//    @Transactional
+//    public CommandLineRunner init(UserRepository userRepository) {
+//        return args -> {
+//            if (userRepository.count() == 0) {
+//                User user1 = new User();
+//                user1.setName("Настюша");
+//                userRepository.saveAndFlush(user1); // сразу пишем в базу
+//
+//                User user2 = new User();
+//                user2.setName("Вова");
+//                user2.setPartnerId(user1.getId());
+//                userRepository.save(user2);
+//
+//                user1.setPartnerId(user2.getId());
+//                userRepository.save(user1);
+//            }
+//        };
+//    }
 }

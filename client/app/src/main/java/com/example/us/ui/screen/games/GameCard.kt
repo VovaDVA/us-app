@@ -31,7 +31,7 @@ fun GameCard(title: String, description: String, onClick: () -> Unit) {
         Column {
             Text(title, fontSize = 22.sp, color = Color(0xFFFF6BAB), fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(6.dp))
-            Text(description, fontSize = 16.sp, color = Color(0xFFFF6BAB))
+            Text(description, fontSize = 16.sp, color = Color(0xFF6A1B4D))
         }
     }
 }

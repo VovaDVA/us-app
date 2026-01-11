@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Tab
 import androidx.compose.material.TabRow
 import androidx.compose.material.TabRowDefaults
@@ -17,6 +18,9 @@ import androidx.compose.material.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -24,6 +28,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,7 +51,7 @@ import com.example.us.ui.screen.special.components.PartnerWishesList
 import com.example.us.ui.screen.special.components.WishEditSheet
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
 fun WishesScreen(viewModel: WishesViewModel = viewModel()) {
     var selectedTab by remember { mutableStateOf(0) }
@@ -73,6 +78,15 @@ fun WishesScreen(viewModel: WishesViewModel = viewModel()) {
         )
     }
 
+    // Pull refresh ----------------------------------------/
+    val isRefreshing by viewModel.isRefreshing.collectAsState()
+
+    val pullRefreshState = rememberPullRefreshState(
+        refreshing = isRefreshing,
+        onRefresh = { viewModel.refresh() }
+    )
+    // -----------------------------------------------------/
+
 
     AnimatedLoveBackground(Modifier.fillMaxSize())
 
@@ -84,6 +98,7 @@ fun WishesScreen(viewModel: WishesViewModel = viewModel()) {
                 top = WindowInsets.statusBars.asPaddingValues()
                     .calculateTopPadding() + 10.dp
             )
+            .pullRefresh(pullRefreshState)
     ) {
         Column(
             modifier = Modifier
@@ -151,6 +166,12 @@ fun WishesScreen(viewModel: WishesViewModel = viewModel()) {
         ) {
             Icon(Icons.Default.Add, contentDescription = "Add", tint = Color.White)
         }
+
+        PullRefreshIndicator(
+            refreshing = isRefreshing,
+            state = pullRefreshState,
+            modifier = Modifier.align(Alignment.TopCenter)
+        )
 
         // модалка
         if (sheetVisible) {

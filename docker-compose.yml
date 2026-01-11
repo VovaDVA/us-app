@@ -27,9 +27,12 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    volumes:
+      - diary_uploads:/app/uploads/diary
 
 volumes:
   db_data:
+  diary_uploads:
 
 networks:
   default:

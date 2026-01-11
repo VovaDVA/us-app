@@ -32,6 +32,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -54,7 +55,7 @@ import java.util.Locale
 @Composable
 fun AddEventModal(
     initialEvent: DiaryEvent? = null,
-    onSave: (DiaryEvent) -> Unit,
+    onSave: (DiaryEvent, Uri?) -> Unit,
     onDismiss: () -> Unit,
     onDelete: ((DiaryEvent) -> Unit)? = null
 ) {
@@ -63,9 +64,9 @@ fun AddEventModal(
     var title by remember { mutableStateOf(initialEvent?.title ?: "") }
     var text by remember { mutableStateOf(initialEvent?.description ?: "") }
     var type by remember { mutableStateOf(initialEvent?.type ?: EventType.ROMANTIC) }
-    var selectedImageUri by remember { mutableStateOf<String?>(initialEvent?.imageUri) }
+    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
     var pickedDateMillis by remember {
-        mutableStateOf(
+        mutableLongStateOf(
             initialEvent?.date ?: System.currentTimeMillis()
         )
     }
@@ -82,7 +83,7 @@ fun AddEventModal(
             } catch (_: Exception) { /* иногда уже есть разрешение */
             }
 
-            selectedImageUri = uri.toString()
+            selectedImageUri = uri
         }
     }
 
@@ -107,7 +108,9 @@ fun AddEventModal(
                     .clickable { launcher.launch("image/*") },
                 contentAlignment = Alignment.Center
             ) {
-                if (selectedImageUri == null) {
+                val previewImageUrl: String? = selectedImageUri?.toString() ?: initialEvent?.imageLargeUrl
+
+                if (previewImageUrl == null) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Icon(
                             Icons.Default.Add,
@@ -119,7 +122,7 @@ fun AddEventModal(
                     }
                 } else {
                     AsyncImage(
-                        model = selectedImageUri,
+                        model = previewImageUrl,
                         contentDescription = null,
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop
@@ -211,10 +214,11 @@ fun AddEventModal(
                         title = title.ifBlank { "Событие" },
                         description = text,
                         date = pickedDateMillis,
-                        imageUri = selectedImageUri,
+                        imageSmallUrl = initialEvent?.imageSmallUrl,
+                        imageLargeUrl = initialEvent?.imageLargeUrl,
                         type = type
                     )
-                    onSave(ev)
+                    onSave(ev, selectedImageUri)
                     onDismiss()
                 },
                 modifier = Modifier.fillMaxWidth(),

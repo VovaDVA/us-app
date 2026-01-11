@@ -1,18 +1,19 @@
 package com.example.us.ui.screen.special
 
 import android.app.Application
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.us.api.CacheClient
 import com.example.us.api.WishApi
-import com.example.us.ui.screen.special.classes.AddWishRequest
 import com.example.us.ui.screen.special.classes.Wish
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class WishesViewModel(app: Application) : AndroidViewModel(app) {
@@ -26,17 +27,21 @@ class WishesViewModel(app: Application) : AndroidViewModel(app) {
     var errorMessage by mutableStateOf<String?>(null)
         private set
 
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing = _isRefreshing.asStateFlow()
 
-    // Хранит текущего пользователя
-    private var currentUserId: Long = 2
-    private var currentPartnerId: Long = 1
+    fun refresh() {
+        viewModelScope.launch {
+            _isRefreshing.value = true
+            refreshMyWishes()
+            refreshPartnerWishes()
+            _isRefreshing.value = false
+        }
+    }
 
     init {
         // Подгружаем userId из кеша
         scope.launch {
-            currentUserId = CacheClient.get<Long>("userId") ?: 2
-            currentPartnerId = CacheClient.get<Long>("partnerId") ?: 1
-
             CacheClient.get<List<Wish>>("myWishes")?.let { cached ->
                 myWishes.addAll(cached)
             }
@@ -55,29 +60,31 @@ class WishesViewModel(app: Application) : AndroidViewModel(app) {
     fun refreshMyWishes() {
         scope.launch {
             try {
-                val wishes = WishApi.myWishes(currentUserId)
+                val wishes = WishApi.myWishes()
                 myWishes.clear()
                 myWishes.addAll(wishes)
                 CacheClient.set("myWishes", wishes)
-            } catch (_: Exception) {}
+            } catch (_: Exception) {
+            }
         }
     }
 
     fun refreshPartnerWishes() {
         scope.launch {
             try {
-                val wishes = WishApi.partnerWishes(currentPartnerId)
+                val wishes = WishApi.partnerWishes()
                 partnerWishes.clear()
                 partnerWishes.addAll(wishes)
                 CacheClient.set("partnerWishes", wishes)
-            } catch (_: Exception) {}
+            } catch (_: Exception) {
+            }
         }
     }
 
     fun addMyWish(wish: Wish) {
         scope.launch {
             try {
-                val created = WishApi.createWish(currentUserId, wish)
+                val created = WishApi.createWish(wish)
                 myWishes.add(created)
                 CacheClient.set("myWishes", myWishes.toList())
             } catch (e: Exception) {
@@ -92,10 +99,11 @@ class WishesViewModel(app: Application) : AndroidViewModel(app) {
         if (index != -1) {
             scope.launch {
                 try {
-                    WishApi.updateWish(currentUserId, wish.id, wish)
+                    WishApi.updateWish(wish.id, wish)
                     myWishes[index] = wish
                     CacheClient.set("myWishes", myWishes.toList())
-                } catch (_: Exception) {}
+                } catch (_: Exception) {
+                }
             }
         }
     }
@@ -108,7 +116,8 @@ class WishesViewModel(app: Application) : AndroidViewModel(app) {
                 CacheClient.set("myWishes", myWishes.toList())
                 try {
                     WishApi.deleteWish(id)
-                } catch (_: Exception) {}
+                } catch (_: Exception) {
+                }
             }
         }
     }
@@ -122,8 +131,9 @@ class WishesViewModel(app: Application) : AndroidViewModel(app) {
             scope.launch {
                 CacheClient.set("myWishes", myWishes.toList())
                 try {
-                    WishApi.toggleDone(currentUserId, id)
-                } catch (_: Exception) {}
+                    WishApi.toggleDone(id)
+                } catch (_: Exception) {
+                }
             }
         }
     }
@@ -136,8 +146,9 @@ class WishesViewModel(app: Application) : AndroidViewModel(app) {
             scope.launch {
                 CacheClient.set("myWishes", myWishes.toList())
                 try {
-                    WishApi.toggleFavorite(currentUserId, id)
-                } catch (_: Exception) {}
+                    WishApi.toggleFavorite(id)
+                } catch (_: Exception) {
+                }
             }
         }
     }

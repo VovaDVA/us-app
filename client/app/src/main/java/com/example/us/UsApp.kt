@@ -1,8 +1,12 @@
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.size
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -12,12 +16,10 @@ import com.example.us.R
 import com.example.us.ui.component.BottomMenu
 import com.example.us.ui.component.TabItem
 import com.example.us.ui.screen.calendar.CalendarScreen
-import com.example.us.ui.screen.diary.DiaryEvent
 import com.example.us.ui.screen.diary.DiaryTimelineScreen
 import com.example.us.ui.screen.diary.DiaryViewModel
 import com.example.us.ui.screen.games.GamesScreen
 import com.example.us.ui.screen.home.HomeScreen
-import com.example.us.ui.screen.home.PlaceholderScreen
 import com.example.us.ui.screen.special.WishesScreen
 import com.example.us.ui.screen.special.WishesViewModel
 

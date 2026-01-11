@@ -25,7 +25,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.us.api.CacheClient
 import com.example.us.api.EventApi
 import com.example.us.ui.screen.calendar.CacheClientCalendar
 import com.example.us.ui.screen.calendar.NextEventDto
@@ -33,29 +32,11 @@ import com.example.us.ui.screen.home.InfoCard
 import java.time.LocalDate
 
 @Composable
-fun NextEventCard() {
-    // Попробуем синхронно получить закешированное событие
-    var nextEvent by remember { mutableStateOf<NextEventDto?>(null) }
-
-    LaunchedEffect(Unit) {
-        // suspend функция, вызываем в LaunchedEffect
-        val cached = CacheClientCalendar.loadNextEvent()
-        if (cached != null) {
-            nextEvent = cached
-        } else {
-            val userId = CacheClient.get<Long>("userId") ?: 2L
-            val partnerId = CacheClient.get<Long>("partnerId") ?: 1L
-
-            val fetched = EventApi.getNext(userId, partnerId)
-            nextEvent = fetched
-            CacheClientCalendar.saveNextEvent(fetched)
-        }
-    }
-
-    InfoCard(title = "Ближайшее событие", modifier = Modifier.fillMaxWidth()) {
-        val event = nextEvent
+fun NextEventCard(event: NextEventDto?) {
+    InfoCard(title = "Ближайшее событие") {
         if (event != null) {
             val date = LocalDate.parse(event.date)
+
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
                     modifier = Modifier
@@ -66,25 +47,29 @@ fun NextEventCard() {
                 ) {
                     Text(event.icon, fontSize = 24.sp)
                 }
+
                 Spacer(Modifier.width(12.dp))
-                Column(
-                    verticalArrangement = Arrangement.SpaceAround,
-                    modifier = Modifier.height(50.dp)
-                ) {
+
+                Column {
                     Text(
                         event.text,
                         fontSize = 20.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = Color(0xFF6A1B4D)
+                        fontWeight = FontWeight.SemiBold
                     )
                     Text(
                         "С ${date.dayOfMonth}.${date.monthValue}.${date.year}",
-                        fontSize = 14.sp, color = Color(0xFF6A1B4D).copy(alpha = 0.7f)
+                        fontSize = 14.sp,
+                        color = Color.Gray
                     )
                 }
             }
         } else {
-            Text("Событий нет", fontSize = 16.sp, color = Color(0xFF6A1B4D).copy(alpha = 0.7f))
+            Text(
+                "Событий нет",
+                fontSize = 16.sp,
+                color = Color.Gray
+            )
         }
     }
 }
+

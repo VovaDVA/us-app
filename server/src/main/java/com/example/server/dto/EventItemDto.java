@@ -1,4 +1,6 @@
-package com.example.server.model;
+package com.example.server.dto;
+
+import com.example.server.model.CalendarEvent;
 
 public class EventItemDto {
     public Long id;

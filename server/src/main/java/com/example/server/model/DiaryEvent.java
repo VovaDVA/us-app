@@ -3,9 +3,6 @@ package com.example.server.model;
 import jakarta.persistence.*;
 import lombok.Data;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-
 @Entity
 @Data
 @Table(name = "diary_events")
@@ -14,16 +11,19 @@ public class DiaryEvent {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Long relationId;
+    private Long userId;
+    private Long partnerId;
 
     private String title;
 
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    private LocalDate date;
+    private String imageSmallUrl;
+    private String imageLargeUrl;
 
-    private Boolean isImportant = false;
+    private Long date; // epoch millis
 
-    private LocalDateTime createdAt = LocalDateTime.now();
+    @Enumerated(EnumType.STRING)
+    private EventType type;
 }

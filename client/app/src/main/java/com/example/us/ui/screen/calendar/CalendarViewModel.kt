@@ -2,10 +2,13 @@ package com.example.us.ui.screen.calendar
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.us.api.CacheClient
 import com.example.us.api.EventApi
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import java.io.File
@@ -24,6 +27,17 @@ class CalendarViewModel(app: Application) : AndroidViewModel(app) {
     private var userId: Long = 2
     private var partnerId: Long = 1
 
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing = _isRefreshing.asStateFlow()
+
+    fun refresh() {
+        viewModelScope.launch {
+            _isRefreshing.value = true
+            refreshFromServer()
+            _isRefreshing.value = false
+        }
+    }
+
     init {
         scope.launch {
             userId = CacheClient.get<Long>("userId") ?: 2
@@ -38,7 +52,7 @@ class CalendarViewModel(app: Application) : AndroidViewModel(app) {
     fun refreshFromServer() {
         scope.launch {
             try {
-                val dtoList = EventApi.getAll(userId, partnerId)
+                val dtoList = EventApi.getAll()
                 val map = mutableMapOf<LocalDate, MutableList<EventItemLocal>>()
                 dtoList.forEach { dto ->
                     val date = LocalDate.parse(dto.date)
@@ -58,7 +72,7 @@ class CalendarViewModel(app: Application) : AndroidViewModel(app) {
         scope.launch {
             try {
                 val req = EventItemDto(date = date.toString(), text = text, icon = icon)
-                val created = EventApi.create(userId, partnerId, req)
+                val created = EventApi.create(req)
                 val updated = events.toMutableMap()
                 val list = updated[date] ?: mutableListOf()
                 list.add(EventItemLocal(id = created.id, text = created.text, icon = created.icon))
@@ -87,10 +101,10 @@ class CalendarViewModel(app: Application) : AndroidViewModel(app) {
                 val id = old.id
                 val req = EventItemDto(id = id, date = date.toString(), text = newText, icon = newIcon)
                 val updatedDto = if (id != null) {
-                    EventApi.update(userId, partnerId, id, req)
+                    EventApi.update(id, req)
                 } else {
                     // если у локального элемента нет id — создаём новый на сервере
-                    EventApi.create(userId, partnerId, req)
+                    EventApi.create(req)
                 }
                 list[index] = EventItemLocal(id = updatedDto.id, text = updatedDto.text, icon = updatedDto.icon)
                 events = events.toMutableMap().also { it[date] = list }
@@ -112,7 +126,7 @@ class CalendarViewModel(app: Application) : AndroidViewModel(app) {
             val item = list[index]
             try {
                 item.id?.let { id ->
-                    EventApi.delete(userId, partnerId, id)
+                    EventApi.delete(id)
                 }
                 list.removeAt(index)
                 events = events.toMutableMap().also { it[date] = list }

@@ -23,7 +23,7 @@ import java.time.LocalDateTime
 
 @Composable
 fun TimeTogetherCard() {
-    val start = LocalDate.of(2024, 7, 14).atStartOfDay()
+    val start = LocalDate.of(2024, 7, 13).atStartOfDay()
 
     var now by remember { mutableStateOf(LocalDateTime.now()) }
 

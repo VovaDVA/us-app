@@ -4,30 +4,26 @@ import com.example.us.ui.screen.special.classes.Wish
 
 object WishApi {
 
-    // Получить свои желания
-    suspend fun myWishes(userId: Long): List<Wish> =
-        ApiClient.get("wish/my?userId=$userId")
+    suspend fun myWishes(): List<Wish> =
+        ApiClient.get("wish/my")
 
-    // Получить желания партнера
-    suspend fun partnerWishes(partnerId: Long): List<Wish> =
-        ApiClient.get("wish/partner?partnerId=$partnerId")
+    suspend fun partnerWishes(): List<Wish> =
+        ApiClient.get("wish/partner")
 
-    // Создать новое желание
-    suspend fun createWish(userId: Long, wish: Wish): Wish =
-        ApiClient.post("wish?userId=$userId", wish)
+    suspend fun createWish(wish: Wish): Wish =
+        ApiClient.post("wish", wish)
 
-    // Обновить желание (редактировать)
-    suspend fun updateWish(userId: Long, id: Long, wish: Wish): Wish =
-        ApiClient.put("wish/$id?userId=$userId", wish)
+    suspend fun updateWish(id: Long, wish: Wish): Wish =
+        ApiClient.put("wish/$id", wish)
 
-    // Переключить важность
-    suspend fun toggleFavorite(userId: Long, id: Long): Wish =
-        ApiClient.post("wish/$id/favorite?userId=$userId")
+    suspend fun toggleFavorite(id: Long): Wish =
+        ApiClient.post("wish/$id/favorite")
 
-    // Переключить выполнено/не выполнено
-    suspend fun toggleDone(userId: Long, id: Long): Wish =
-        ApiClient.post("wish/$id/done?userId=$userId")
+    suspend fun toggleDone(id: Long): Wish =
+        ApiClient.post("wish/$id/done")
 
-    suspend fun deleteWish(id: Long): Unit =
-        ApiClient.delete("wish/$id")
+    suspend fun deleteWish(id: Long) {
+        ApiClient.delete<Unit>("wish/$id")
+    }
 }
+

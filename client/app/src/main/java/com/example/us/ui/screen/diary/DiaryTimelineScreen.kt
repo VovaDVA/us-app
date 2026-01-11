@@ -23,8 +23,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -33,6 +37,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -49,6 +54,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.example.us.ui.component.AnimatedLoveBackground
 import com.example.us.ui.screen.calendar.COLOR_PINK
@@ -56,13 +62,24 @@ import com.example.us.ui.screen.calendar.COLOR_WHITE
 import java.util.Locale
 
 // --------------------------- Основной экран дневника ---------------------------
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
-fun DiaryTimelineScreen(viewModel: DiaryViewModel = androidx.lifecycle.viewmodel.compose.viewModel()) {
+fun DiaryTimelineScreen(
+    viewModel: DiaryViewModel = viewModel()
+) {
     val events = viewModel.events // SnapshotStateList<DiaryEvent>
     var selectedEvent by remember { mutableStateOf<DiaryEvent?>(null) }
     var showAdd by remember { mutableStateOf(false) }
     var editEvent by remember { mutableStateOf<DiaryEvent?>(null) }
+
+    // Pull refresh ----------------------------------------/
+    val isRefreshing by viewModel.isRefreshing.collectAsState()
+
+    val pullRefreshState = rememberPullRefreshState(
+        refreshing = isRefreshing,
+        onRefresh = { viewModel.refresh() }
+    )
+    // -----------------------------------------------------/
 
     AnimatedLoveBackground(Modifier.fillMaxSize())
 
@@ -75,6 +92,7 @@ fun DiaryTimelineScreen(viewModel: DiaryViewModel = androidx.lifecycle.viewmodel
                 top = WindowInsets.statusBars.asPaddingValues()
                     .calculateTopPadding() + 10.dp
             )
+            .pullRefresh(pullRefreshState)
     ) {
         Box(
             modifier = Modifier
@@ -129,6 +147,12 @@ fun DiaryTimelineScreen(viewModel: DiaryViewModel = androidx.lifecycle.viewmodel
         ) {
             Icon(Icons.Default.Add, contentDescription = "Add", tint = Color.White)
         }
+        
+        PullRefreshIndicator(
+            refreshing = isRefreshing,
+            state = pullRefreshState,
+            modifier = Modifier.align(Alignment.TopCenter)
+        )
     }
 
     // диалог просмотра
@@ -148,9 +172,12 @@ fun DiaryTimelineScreen(viewModel: DiaryViewModel = androidx.lifecycle.viewmodel
     if (showAdd) {
         AddEventModal(
             initialEvent = editEvent,
-            onSave = { ev ->
-                if (editEvent == null) viewModel.addEvent(ev)
-                else viewModel.updateEvent(ev)
+            onSave = { ev, imageUri ->
+                if (editEvent == null) {
+                    viewModel.addEvent(ev, imageUri)
+                } else {
+                    viewModel.updateEvent(ev, imageUri)
+                }
                 showAdd = false
                 editEvent = null
             },
@@ -240,9 +267,9 @@ fun TimelineRow(
                     .padding(12.dp),
             ) {
                 // мини-картинка
-                if (event.imageUri != null) {
+                if (event.imageSmallUrl != null) {
                     AsyncImage(
-                        model = event.imageUri,
+                        model = event.imageSmallUrl,
                         contentDescription = null,
                         modifier = Modifier
                             .size(75.dp)
