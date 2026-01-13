@@ -18,6 +18,11 @@ services:
     container_name: us_server
     ports:
       - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/us
+      SPRING_DATASOURCE_USERNAME: dva
+      SPRING_DATASOURCE_PASSWORD: dva
+      SPRING_DATASOURCE_DRIVER-CLASS-NAME: org.postgresql.Driver
     depends_on:
       - db
     environment:  # Добавьте для отладки
