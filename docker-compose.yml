@@ -19,11 +19,11 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/us
-      - SPRING_DATASOURCE_USERNAME: dva
-      - SPRING_DATASOURCE_PASSWORD: dva
-      - SPRING_DATASOURCE_DRIVER-CLASS-NAME: org.postgresql.Driver
-      - SPRING_PROFILES_ACTIVE=dev
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/us
+      SPRING_DATASOURCE_USERNAME: dva
+      SPRING_DATASOURCE_PASSWORD: dva
+      SPRING_DATASOURCE_DRIVER-CLASS-NAME: org.postgresql.Driver
+      SPRING_PROFILES_ACTIVE: dev
     depends_on:
       - db
     healthcheck:  # Проверка здоровья БД
