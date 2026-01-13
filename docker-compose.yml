@@ -19,14 +19,13 @@ services:
     ports:
       - "8080:8080"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/us
-      SPRING_DATASOURCE_USERNAME: dva
-      SPRING_DATASOURCE_PASSWORD: dva
-      SPRING_DATASOURCE_DRIVER-CLASS-NAME: org.postgresql.Driver
+      - SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/us
+      - SPRING_DATASOURCE_USERNAME: dva
+      - SPRING_DATASOURCE_PASSWORD: dva
+      - SPRING_DATASOURCE_DRIVER-CLASS-NAME: org.postgresql.Driver
+      - SPRING_PROFILES_ACTIVE=dev
     depends_on:
       - db
-    environment:  # Добавьте для отладки
-      - SPRING_PROFILES_ACTIVE=dev
     healthcheck:  # Проверка здоровья БД
       test: ["CMD", "pg_isready", "-h", "db", "-U", "dva"]
       interval: 10s
